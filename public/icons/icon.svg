@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="100" fill="#2563eb"/>
+  <g fill="white">
+    <!-- Group of people icon -->
+    <circle cx="256" cy="160" r="60"/>
+    <circle cx="160" cy="200" r="45"/>
+    <circle cx="352" cy="200" r="45"/>
+    <path d="M256 240c-66.274 0-120 40-120 90v42h240v-42c0-50-53.726-90-120-90z"/>
+    <path d="M160 260c-44.183 0-80 26.863-80 60v40h80v-60c0-14.4 3.2-28 8.8-40H160z"/>
+    <path d="M352 260h-8.8c5.6 12 8.8 25.6 8.8 40v60h80v-40c0-33.137-35.817-60-80-60z"/>
+  </g>
+</svg>
