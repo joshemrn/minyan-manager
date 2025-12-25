@@ -6,8 +6,10 @@ const withPWA = require('next-pwa')({
   disable: process.env.NODE_ENV === 'development'
 });
 
+
 const nextConfig = {
   reactStrictMode: true,
+  turbopack: false, // Force use of webpack instead of Turbopack
 };
 
 module.exports = withPWA(nextConfig);
