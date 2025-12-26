@@ -96,6 +96,7 @@ export default function BulkCreateMinyanForm({
           weekdays: selectedWeekdays,
           startDate: new Date(data.startDate),
           endDate: new Date(data.endDate),
+          createdBy: user.id,
         },
         user.id
       );
