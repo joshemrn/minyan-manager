@@ -10,6 +10,11 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink,
+  sendPasswordResetEmail,
+  ActionCodeSettings,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -22,6 +27,9 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  sendMagicLink: (email: string) => Promise<void>;
+  completeMagicLink: (email: string, href: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -109,6 +117,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userData);
   };
 
+  const sendMagicLink = async (email: string) => {
+    const actionCodeSettings: ActionCodeSettings = {
+      url: `${window.location.origin}/auth/email-link`,
+      handleCodeInApp: true,
+    };
+    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+    window.localStorage.setItem('emailForSignIn', email);
+  };
+
+  const completeMagicLink = async (email: string, href: string) => {
+    const { user: firebaseUser } = await signInWithEmailLink(auth, email, href);
+    window.localStorage.removeItem('emailForSignIn');
+    let userData = await fetchUserData(firebaseUser);
+    if (!userData) {
+      userData = await createUserDocument(
+        firebaseUser,
+        firebaseUser.displayName || email.split('@')[0]
+      );
+    }
+    setUser(userData);
+  };
+
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email);
+  };
+
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     const { user: firebaseUser } = await signInWithPopup(auth, provider);
@@ -145,6 +179,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signUp,
         signInWithGoogle,
+        sendMagicLink,
+        completeMagicLink,
+        resetPassword,
         logout,
         refreshUser,
       }}
