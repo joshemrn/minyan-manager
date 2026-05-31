@@ -9,20 +9,14 @@ import { Button, Input, Card, CardContent } from '@/components/ui';
 import { UserGroupIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
-interface LoginForm {
-  email: string;
-  password: string;
-}
-
 interface MagicLinkForm {
   email: string;
 }
 
 export default function LoginPage() {
-  const { signIn, signInWithGoogle, sendMagicLink } = useAuth();
+  const { signInWithGoogle, sendMagicLink } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'password' | 'magic'>('password');
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [magicEmail, setMagicEmail] = useState('');
 
@@ -30,27 +24,7 @@ export default function LoginPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginForm>();
-
-  const {
-    register: registerMagic,
-    handleSubmit: handleSubmitMagic,
-    formState: { errors: magicErrors },
   } = useForm<MagicLinkForm>();
-
-  const onSubmit = async (data: LoginForm) => {
-    setIsLoading(true);
-    try {
-      await signIn(data.email, data.password);
-      toast.success('Welcome back!');
-      router.push('/dashboard');
-    } catch (error: any) {
-      console.error('Login error:', error);
-      toast.error(error.message || 'Failed to sign in');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const onMagicLinkSubmit = async (data: MagicLinkForm) => {
     setIsLoading(true);
@@ -81,11 +55,6 @@ export default function LoginPage() {
     }
   };
 
-  const switchTab = (tab: 'password' | 'magic') => {
-    setActiveTab(tab);
-    setMagicLinkSent(false);
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-amber-50 px-4 py-12">
       <div className="w-full max-w-md relative">
@@ -108,39 +77,13 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
               Welcome Back
             </h1>
-            <p className="text-gray-500 text-center mb-6">
+            <p className="text-gray-500 text-center mb-8">
               Sign in to continue to your minyanim
             </p>
 
-            {/* Tab switcher */}
-            <div className="flex w-full rounded-xl bg-gray-100 p-1 mb-6">
-              <button
-                type="button"
-                onClick={() => switchTab('password')}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
-                  activeTab === 'password'
-                    ? 'bg-white shadow-sm text-gray-900 font-semibold'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Password
-              </button>
-              <button
-                type="button"
-                onClick={() => switchTab('magic')}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
-                  activeTab === 'magic'
-                    ? 'bg-white shadow-sm text-gray-900 font-semibold'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Magic Link
-              </button>
-            </div>
-
-            {/* Password tab */}
-            {activeTab === 'password' && (
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Magic link form */}
+            {!magicLinkSent ? (
+              <form onSubmit={handleSubmit(onMagicLinkSubmit)} className="space-y-4">
                 <Input
                   label="Email"
                   type="email"
@@ -154,96 +97,40 @@ export default function LoginPage() {
                   })}
                   error={errors.email?.message}
                 />
-
-                <div>
-                  <Input
-                    label="Password"
-                    type="password"
-                    autoComplete="current-password"
-                    {...register('password', {
-                      required: 'Password is required',
-                      minLength: {
-                        value: 6,
-                        message: 'Password must be at least 6 characters',
-                      },
-                    })}
-                    error={errors.password?.message}
-                  />
-                  <div className="flex justify-end mt-1">
-                    <Link
-                      href="/forgot-password"
-                      className="text-sm text-primary-600 hover:text-primary-500"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-                </div>
-
                 <Button
                   type="submit"
                   className="w-full"
                   size="lg"
                   isLoading={isLoading}
                 >
-                  Sign In
+                  Send Magic Link
                 </Button>
+                <p className="text-center text-sm text-gray-500">
+                  We&apos;ll email you a sign-in link. No password needed.
+                </p>
               </form>
-            )}
-
-            {/* Magic link tab */}
-            {activeTab === 'magic' && (
-              <>
-                {!magicLinkSent ? (
-                  <form onSubmit={handleSubmitMagic(onMagicLinkSubmit)} className="space-y-4">
-                    <Input
-                      label="Email"
-                      type="email"
-                      autoComplete="email"
-                      {...registerMagic('email', {
-                        required: 'Email is required',
-                        pattern: {
-                          value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                          message: 'Invalid email address',
-                        },
-                      })}
-                      error={magicErrors.email?.message}
-                    />
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      size="lg"
-                      isLoading={isLoading}
-                    >
-                      Send Magic Link
-                    </Button>
-                    <p className="text-center text-sm text-gray-500">
-                      We&apos;ll email you a sign-in link. No password needed.
-                    </p>
-                  </form>
-                ) : (
-                  <div className="text-center space-y-4 py-2">
-                    <div className="flex justify-center">
-                      <div className="h-14 w-14 rounded-full bg-primary-50 flex items-center justify-center">
-                        <EnvelopeIcon className="h-7 w-7 text-primary-600" />
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">Check your email</h3>
-                      <p className="text-sm text-gray-500">
-                        We sent a sign-in link to <span className="font-medium text-gray-700">{magicEmail}</span>. Click it to log in — no password needed.
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setMagicLinkSent(false)}
-                    >
-                      Resend link
-                    </Button>
+            ) : (
+              <div className="text-center space-y-4 py-2">
+                <div className="flex justify-center">
+                  <div className="h-14 w-14 rounded-full bg-primary-50 flex items-center justify-center">
+                    <EnvelopeIcon className="h-7 w-7 text-primary-600" />
                   </div>
-                )}
-              </>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">Check your email</h3>
+                  <p className="text-sm text-gray-500">
+                    We sent a sign-in link to <span className="font-medium text-gray-700">{magicEmail}</span>. Click it to log in — no password needed.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setMagicLinkSent(false)}
+                >
+                  Resend link
+                </Button>
+              </div>
             )}
 
             <div className="relative my-6">
